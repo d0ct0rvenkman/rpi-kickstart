@@ -1,6 +1,6 @@
 ---
     - name: Install and configure software for rpi-kickstart
-      gather_facts: False
+      gather_facts: True
       hosts: localhost
       connection: local
       tasks:
@@ -29,3 +29,15 @@
           yum:
             name: nginx
             state: latest
+        - name: Install pxelinux package
+          when: ansible_os_family == "Debian"
+          apt:
+            name: pxelinux
+            state: latest
+        - name: Populate dnsmasq main configuration file
+          copy:
+             src: files/dnsmasq.conf
+             dest: /etc/dnsmasq.conf
+             owner: root
+             group: root
+             mode: 0644
