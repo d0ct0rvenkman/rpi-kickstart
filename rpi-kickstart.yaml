@@ -4,6 +4,15 @@
       hosts: localhost
       connection: local
       tasks:
+        - name: Copy iptables rules files
+          copy:
+             src: files/iptables.rules
+             dest: /etc/iptables.rules
+             owner: root
+             group: root
+             mode: 0644
+        - name: Apply iptables rules
+          command: iptables-restore /etc/iptables.rules
         - name: Update apt repositories
           when: ansible_os_family == "Debian"
           apt:
