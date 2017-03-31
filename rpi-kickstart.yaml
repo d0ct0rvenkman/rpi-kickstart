@@ -9,29 +9,34 @@
           apt:
             update_cache: yes
             cache_valid_time: 86400
-        - name: Install dnsmasq package
+        - name: Install dnsmasq (deb)
           when: ansible_os_family == "Debian"
           apt:
             name: dnsmasq
             state: latest
-        - name: Install dnsmasq package
+        - name: Install dnsmasq (rpm)
           when: ansible_os_family == "RedHat"
           yum:
             name: dnsmasq
             state: latest
-        - name: Install nginx package
+        - name: Install nginx (deb)
           when: ansible_os_family == "Debian"
           apt:
             name: nginx
             state: latest
-        - name: Install nginx package
+        - name: Install nginx (rpm)
           when: ansible_os_family == "RedHat"
           yum:
             name: nginx
             state: latest
-        - name: Install pxelinux package
+        - name: Install pxelinux (deb)
           when: ansible_os_family == "Debian"
           apt:
+            name: pxelinux
+            state: latest
+        - name: Install pxelinux (rpm)
+          when: ansible_os_family == "RedHat"
+          yum:
             name: pxelinux
             state: latest
         - name: Populate dnsmasq main configuration file
@@ -47,3 +52,9 @@
           service:
             name: dnsmasq
             state: restarted
+            enabled: yes
+        - name: Restart nginx
+          service:
+            name: nginx
+            state: restarted
+            enabled: yes
