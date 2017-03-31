@@ -41,3 +41,9 @@
              owner: root
              group: root
              mode: 0644
+          notify:
+            - Restart dnsmasq
+        - name: Restart dnsmasq
+          service:
+            name: dnsmasq
+            state: restarted
