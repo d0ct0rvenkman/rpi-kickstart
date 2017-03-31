@@ -1,0 +1,19 @@
+---
+    - name: Install and configure software for rpi-kickstart
+      gather_facts: False
+      hosts: localhost
+      connection: local
+      tasks:
+        - name: Update apt repositories
+          when: ansible_os_family == "Debian"
+          apt:
+            update_cache: yes
+            cache_valid_time: 86400
+        - name: Install dnsmasq package
+          package:
+            name: dnsmasq
+            state: latest
+        - name: Install nginx package
+          package:
+            name: nginx
+            state: latest
