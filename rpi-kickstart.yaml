@@ -48,6 +48,10 @@
           yum:
             name: pxelinux
             state: latest
+        - name: Enable dnsmasq
+          service:
+            name: dnsmasq
+            enabled: yes
         - name: Populate dnsmasq main configuration file
           copy:
              src: files/dnsmasq.conf
@@ -57,19 +61,22 @@
              mode: 0644
           notify:
             - Restart dnsmasq
-        - name: Restart dnsmasq
-          service:
-            name: dnsmasq
-            state: restarted
-            enabled: yes
-        - name: Restart nginx
+        - name: Enable nginx
           service:
             name: nginx
-            state: restarted
             enabled: yes
         - name: Symlink PXE dependencies
           when: ansible_os_family == "Debian"
           command: find /usr/lib/syslinux/modules/bios/ -name *.c32 -exec ln -s {}  /tftp/ \;
+      handlers:
+        - name: Restart dnsmasq
+          service:
+            name: dnsmasq
+            state: restarted
+        - name: Restart nginx
+          service:
+            name: nginx
+            state: restarted
     - name: Run Local Playbook
       gather_facts: True
       hosts: localhost
