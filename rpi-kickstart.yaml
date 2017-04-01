@@ -18,16 +18,16 @@
           apt:
             update_cache: yes
             cache_valid_time: 86400
-        - name: Create /tftp
+        - name: Create /tftproot
           file:
-            path: /tftp
+            path: /tftproot
             state: directory
             mode: 0755
             owner: root
             group: root
-        - name: Create /tftp/pxelinux.cfg
+        - name: Create /tftproot/pxelinux.cfg
           file:
-            path: /tftp/pxelinux.cfg
+            path: /tftproot/pxelinux.cfg
             state: directory
             mode: 0755
             owner: root
@@ -85,11 +85,11 @@
           when: ansible_os_family == "Debian"
           file:
               src: /usr/lib/PXELINUX/pxelinux.0
-              dest: /tftp/pxelinux.0
+              dest: /tftproot/pxelinux.0
               state: link
         - name: Symlink PXE dependencies
           when: ansible_os_family == "Debian"
-          command: find /usr/lib/syslinux/modules/bios/ -name *.c32 -exec ln -s {}  /tftp/ \;
+          command: find /usr/lib/syslinux/modules/bios/ -name *.c32 -exec ln -s {}  /tftproot/ \;
       handlers:
         - name: Restart dnsmasq
           service:
