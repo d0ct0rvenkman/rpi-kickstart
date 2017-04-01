@@ -18,13 +18,15 @@
           apt:
             update_cache: yes
             cache_valid_time: 86400
-        - file:
+        - name: Create /tftp
+          file:
             path: /tftp
             state: directory
             mode: 0755
             owner: root
             group: root
-        - file:
+        - name: Create /tftp/pxelinux.cfg
+          file:
             path: /tftp/pxelinux.cfg
             state: directory
             mode: 0755
@@ -60,10 +62,6 @@
           yum:
             name: pxelinux
             state: latest
-        - name: Enable dnsmasq
-          service:
-            name: dnsmasq
-            enabled: yes
         - name: Populate dnsmasq main configuration file
           copy:
              src: files/dnsmasq.conf
@@ -73,10 +71,16 @@
              mode: 0644
           notify:
             - Restart dnsmasq
+        - name: Enable dnsmasq
+          service:
+            name: dnsmasq
+            enabled: yes
+            state: started
         - name: Enable nginx
           service:
             name: nginx
             enabled: yes
+            state: restarted
         - name: Symlink pxelinux.0
           when: ansible_os_family == "Debian"
           file:
