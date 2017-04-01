@@ -90,6 +90,11 @@
         - name: Symlink PXE dependencies
           when: ansible_os_family == "Debian"
           command: find /usr/lib/syslinux/modules/bios/ -name *.c32 -exec ln -s {}  /tftproot/ \;
+        - name: Turn on ip_forward
+          sysctl:
+              name: net.ipv4.ip_forward
+              value: 1
+              sysctl_set: yes
       handlers:
         - name: Restart dnsmasq
           service:
