@@ -67,3 +67,12 @@
             name: nginx
             state: restarted
             enabled: yes
+        - name: Symlink PXE dependencies
+          when: ansible_os_family == "Debian"
+          command: find /usr/lib/syslinux/modules/bios/ -name *.c32 -exec ln -s {}  /tftp/ \;
+    - name: Run Local Playbook
+      gather_facts: True
+      hosts: localhost
+      connection: local
+      tasks:
+      - include: /root/rpi-kickstart-local.yaml
