@@ -75,4 +75,7 @@
       hosts: localhost
       connection: local
       tasks:
-      - include: /root/rpi-kickstart-local.yaml
+        - stat: path=/root/rpi-kickstart-local.yaml
+          register: local_playbook
+        - include: /root/rpi-kickstart-local.yaml
+          when: local_playbook.exists
