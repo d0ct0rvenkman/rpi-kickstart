@@ -24,6 +24,12 @@
             mode: 0755
             owner: root
             group: root
+        - file:
+            path: /tftp/pxelinux.cfg
+            state: directory
+            mode: 0755
+            owner: root
+            group: root
         - name: Install dnsmasq (deb)
           when: ansible_os_family == "Debian"
           apt:
@@ -71,6 +77,12 @@
           service:
             name: nginx
             enabled: yes
+        - name: Symlink pxelinux.0
+          when: ansible_os_family == "Debian"
+          file:
+              src: /usr/lib/PXELINUX/pxelinux.0
+              dest: /tftp/pxelinux.0
+              state: link
         - name: Symlink PXE dependencies
           when: ansible_os_family == "Debian"
           command: find /usr/lib/syslinux/modules/bios/ -name *.c32 -exec ln -s {}  /tftp/ \;
