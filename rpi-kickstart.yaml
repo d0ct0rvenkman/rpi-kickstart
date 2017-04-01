@@ -100,11 +100,4 @@
             name: nginx
             state: restarted
     - name: Run Local Playbook
-      gather_facts: True
-      hosts: localhost
-      connection: local
-      tasks:
-        - local_action: stat path=/root/rpi-kickstart-local.yaml
-          register: local_playbook_file
-        - include: /root/rpi-kickstart-local.yaml
-          when: local_playbook_file.stat.exists
+      include: /root/rpi-kickstart-local.yaml
