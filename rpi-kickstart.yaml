@@ -78,4 +78,4 @@
         - stat: path=/root/rpi-kickstart-local.yaml
           register: local_playbook
         - include: /root/rpi-kickstart-local.yaml
-          when: local_playbook.exists
+          when: local_playbook.exists == True
