@@ -18,6 +18,12 @@
           apt:
             update_cache: yes
             cache_valid_time: 86400
+        - file:
+            path: /tftp
+            state: directory
+            mode: 0755
+            owner: root
+            gropu: root
         - name: Install dnsmasq (deb)
           when: ansible_os_family == "Debian"
           apt:
