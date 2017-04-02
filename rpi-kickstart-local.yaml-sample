@@ -1,0 +1,146 @@
+---
+    - name: Local kickstart configuration
+      gather_facts: True
+      hosts: localhost
+      connection: local
+      tasks:
+        - name: Install rsync (deb)
+          when: ansible_os_family == "Debian"
+          apt:
+            name: rsync
+            state: present
+        - name: Install rsync (yum)
+          when: ansible_os_family == "RedHat"
+          yum:
+            name: rsync
+            state: latest
+        - name: Install wget (deb)
+          when: ansible_os_family == "Debian"
+          apt:
+            name: wget
+            state: present
+        - name: Install wget (yum)
+          when: ansible_os_family == "RedHat"
+          yum:
+            name: wget
+            state: latest
+        - name: Populate github SSH Keys
+          authorized_key:
+              user: root
+              state: present
+              key: https://github.com/username.keys
+        - name: Send mirrors.repo.com through our cache locally
+          lineinfile:
+            dest: /etc/hosts
+            line: "192.168.42.1 mirrors.repo.com"
+            create: yes
+        - name: Add github.com known_hosts line
+          lineinfile:
+            dest: /root/.ssh/known_hosts
+            line: "github.com,192.30.253.113 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
+            create: yes
+        - name: Add kickstart dnsmasq address line
+          lineinfile:
+            dest: /etc/dnsmasq.d/kickstart.mydomain.net.conf
+            line: "address=/kickstart.mydomain.net/192.168.42.1"
+            create: yes
+          notify: Restart dnsmasq
+        - name: Add mirrors.repo.com dnsmasq address line
+          lineinfile:
+            dest: /etc/dnsmasq.d/mirrors.repo.com.conf
+            line: "address=/mirrors.repo.com/192.168.42.1"
+            create: yes
+          notify: Restart dnsmasq
+        - name: Create /home/kickstart
+          file:
+            path: /home/kickstart
+            state: directory
+            mode: 0755
+            owner: root
+            group: root
+        - name: Create /home/kickstart/configs
+          file:
+            path: /home/kickstart/configs
+            state: directory
+            mode: 0755
+            owner: root
+            group: root
+        - name: Populate /usr/src/kickstart-configs
+          git:
+            repo: git@github.com:username/kickstart-configs.git
+            dest: /usr/src/kickstart-configs
+            version: master
+        - name: Make getpxeimages executable
+          file:
+            path: /usr/src/kickstart-configs/getpxeimages
+            state: file
+            mode: 0755
+            owner: root
+            group: root
+        - name: Create /root/bin
+          file:
+            path: /root/bin
+            state: directory
+            mode: 0755
+            owner: root
+            group: root
+        - name: Create getpxeimages link
+          file:
+            src: /usr/src/kickstart-configs/getpxeimages
+            dest: /root/bin/getpxeimages
+            state: link
+        - name: Copy nginx main config (deb)
+          when: ansible_os_family == "Debian"
+          copy:
+             src: /usr/src/kickstart-configs/nginx/nginx.conf.deb
+             dest: /etc/nginx/nginx.conf
+             owner: root
+             group: root
+             mode: 0644
+          notify: Restart nginx
+        - name: Copy nginx main config (redhat)
+          when: ansible_os_family == "RedHat"
+          copy:
+             src: /usr/src/kickstart-configs/nginx/nginx.conf.rh
+             dest: /etc/nginx/nginx.conf
+             owner: root
+             group: root
+             mode: 0644
+          notify: Restart nginx
+        - name: Copy nginx kickstart config
+          copy:
+             src: /usr/src/kickstart-configs/nginx/kickstart.conf
+             dest: /etc/nginx/conf.d/kickstart.conf
+             owner: root
+             group: root
+             mode: 0644
+          notify: Restart nginx
+        - name: Copy nginx cache config
+          copy:
+             src: /usr/src/kickstart-configs/nginx/cache.conf
+             dest: /etc/nginx/conf.d/cache.conf
+             owner: root
+             group: root
+             mode: 0644
+          notify: Restart nginx
+        - name: Sync HTTP configs
+          command: /usr/bin/rsync -avHlx /usr/src/kickstart-configs/http/ /home/kickstart/configs/ --delete
+        - name: Sync PXE menu
+          command: /usr/bin/rsync -avHlx /usr/src/kickstart-configs/pxe/ /tftproot/menu/ --delete
+        - name: Create PXE default menu link
+          file:
+            src: /tftproot/menu/default
+            dest: /tftproot/pxelinux.cfg/default
+            state: link
+        - name: Run getpxeimages
+          command: /root/bin/getpxeimages
+          ignore_errors: yes
+      handlers:
+        - name: Restart dnsmasq
+          service:
+            name: dnsmasq
+            state: restarted
+        - name: Restart nginx
+          service:
+            name: nginx
+            state: restarted
