@@ -60,7 +60,7 @@
         - name: Install pxelinux (rpm)
           when: ansible_os_family == "RedHat"
           yum:
-            name: syslinux-pxeboot
+            name: syslinux-tftpboot
             state: latest
         - name: Populate dnsmasq main configuration file
           copy:
