@@ -60,7 +60,7 @@
         - name: Install pxelinux (rpm)
           when: ansible_os_family == "RedHat"
           yum:
-            name: pxelinux
+            name: syslinux-pxeboot
             state: latest
         - name: Populate dnsmasq main configuration file
           copy:
@@ -81,15 +81,24 @@
             name: nginx
             enabled: yes
             state: restarted
-        - name: Symlink pxelinux.0
+        - name: Symlink pxelinux.0 (debian)
           when: ansible_os_family == "Debian"
           file:
               src: /usr/lib/PXELINUX/pxelinux.0
               dest: /tftproot/pxelinux.0
               state: link
-        - name: Symlink PXE dependencies
+        - name: Symlink pxelinux.0 (redhat)
+          when: ansible_os_family == "RedHat"
+          file:
+              src: /usr/share/syslinux/pxelinux.0
+              dest: /tftproot/pxelinux.0
+              state: link
+        - name: Symlink PXE dependencies (debian)
           when: ansible_os_family == "Debian"
           command: find /usr/lib/syslinux/modules/bios/ -name *.c32 -exec ln -s {}  /tftproot/ \;
+        - name: Symlink PXE dependencies (redhat)
+          when: ansible_os_family == "RedHat"
+          command: find /usr/share/syslinux/ -name *.c32 -exec ln -s {}  /tftproot/ \;
         - name: Turn on ip_forward
           sysctl:
               name: net.ipv4.ip_forward
